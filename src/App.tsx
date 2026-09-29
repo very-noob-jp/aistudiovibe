@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { Header } from './components/Header';
-import { LiveBypassBrowser } from './components/LiveBypassBrowser';
+import { SimpleBypassBrowser } from './components/SimpleBypassBrowser';
 import { ConfigGenerator } from './components/ConfigGenerator';
 import { AntiBotLab } from './components/AntiBotLab';
 import { StepByStepGuide } from './components/StepByStepGuide';
 import { SslComparisonMatrix } from './components/SslComparisonMatrix';
 import { TroubleshootingFaq } from './components/TroubleshootingFaq';
-import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { ProxyConfig, SslMode } from './types/proxy';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'bypass_browser' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting'>('bypass_browser');
+  const [activeTab, setActiveTab] = useState<'browser' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting'>('browser');
 
   const [config, setConfig] = useState<ProxyConfig>({
     sslMode: 'cloudflare_tunnel',
@@ -38,34 +37,33 @@ export default function App() {
       {/* Navigation Header */}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Real Live Bypass Browser (Primary User Access View) */}
-        {activeTab === 'bypass_browser' && (
-          <div className="space-y-6">
-            <LiveBypassBrowser config={config} onOpenSettings={() => setActiveTab('settings')} />
-            <ArchitectureDiagram config={config} />
-          </div>
+      {/* Main View Area */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
+        {/* Simple Browser (Primary Client View with Google Search & DOM Interception) */}
+        {activeTab === 'browser' && (
+          <SimpleBypassBrowser
+            config={config}
+            onOpenSettings={() => setActiveTab('settings')}
+          />
         )}
 
-        {/* Settings & NPM Package Generator */}
+        {/* Settings & npm Package Generator (Management Side) */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <ConfigGenerator
               config={config}
               setConfig={setConfig}
-              onOpenLiveBrowser={() => setActiveTab('bypass_browser')}
+              onOpenLiveBrowser={() => setActiveTab('browser')}
             />
-            <ArchitectureDiagram config={config} />
           </div>
         )}
 
-        {/* Anti-Bot Explanation & Verification Lab */}
+        {/* Bot Evasion Technical Explanation */}
         {activeTab === 'bot_lab' && (
           <AntiBotLab />
         )}
 
-        {/* Step-by-Step Installation Guide */}
+        {/* Step by Step Setup Guide */}
         {activeTab === 'guide' && (
           <StepByStepGuide config={config} />
         )}
@@ -81,26 +79,11 @@ export default function App() {
           />
         )}
 
-        {/* Troubleshooting & FAQ */}
+        {/* FAQ */}
         {activeTab === 'troubleshooting' && (
           <TroubleshootingFaq />
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/80 mt-12 py-6 text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
-            <span className="font-semibold text-slate-300">Raspberry Pi 4B HTTPS Bypass Proxy Suite</span>
-            <span className="text-slate-400">|</span>
-            <span>npm start / Anti-Bot Client Hints / Cloudflare Tunnel</span>
-          </div>
-          <div className="text-slate-400 font-mono text-[11px]">
-            Node.js 20 LTS • ARM64 Chromium • Express Full-Stack
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
