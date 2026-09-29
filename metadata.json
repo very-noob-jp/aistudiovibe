@@ -1,0 +1,6 @@
+{
+  "name": "RasPi-HTTPS-Proxy-Builder",
+  "description": "Raspberry Pi 4B向けHTTPS Webプロキシ構築ガイド＆コードジェネレーター。無料ドメイン・ドメインなし対応、ローカル検証からCloudflare Tunnel/DuckDNS/Caddyの完全自動セットアップスクリプト生成まで対応。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
