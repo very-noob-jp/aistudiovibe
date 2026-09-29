@@ -1,9 +1,12 @@
 export type SslMode = 
-  | 'cloudflare_tunnel' // No domain needed, free HTTPS via Cloudflare Quick Tunnel / Zero Trust
-  | 'mkcert_local'      // Local trusted SSL cert with mkcert (no warning on LAN)
-  | 'duckdns_letsencrypt' // Free Dynamic DNS domain (*.duckdns.org) with Let's Encrypt
-  | 'sslip_io'          // Magic wildcard DNS (e.g. 192-168-1-50.sslip.io)
-  | 'self_signed';      // Self-signed certificate (for fast local dev)
+  | 'cloudflare_tunnel'   // Cloudflare Quick Tunnel (*.trycloudflare.com)
+  | 'cf_custom_domain'    // Cloudflare Tunnel + 独自ドメイン (検閲完全回避)
+  | 'tailscale_vpn'       // Tailscale WireGuard VPN (学校・職場の検閲を100%すり抜けるP2P暗号化)
+  | 'pinggy_tunnel'       // Pinggy SSH HTTPS Tunnel (登録不要・ワンライナーで即時別ドメイン公開)
+  | 'duckdns_letsencrypt' // Free Dynamic DNS (*.duckdns.org) with Let's Encrypt
+  | 'mkcert_local'        // Local trusted SSL cert with mkcert (LAN内)
+  | 'sslip_io'            // Magic wildcard DNS (e.g. 192-168-1-50.sslip.io)
+  | 'self_signed';        // Self-signed certificate
 
 export type AntiBotEngine = 
   | 'header_spoofing'   // Lightweight Node.js + full Sec-CH-UA / Sec-Fetch Chrome headers
@@ -24,6 +27,7 @@ export interface ProxyConfig {
   duckDnsDomain: string;
   duckDnsToken: string;
   customDomain: string;
+  cloudflareToken?: string;
   raspiLocalIp: string;
   cloudflareTunnelName: string;
   autoStartService: boolean;

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Globe, ArrowLeft, ArrowRight, RotateCw, ShieldCheck, ExternalLink, Sliders, Lock, Sparkles, Home, X, Check, HelpCircle } from 'lucide-react';
+import { Search, Globe, ArrowLeft, ArrowRight, RotateCw, ShieldCheck, ExternalLink, Sliders, Lock, Sparkles, Home, X, Check, HelpCircle, EyeOff } from 'lucide-react';
 import { ProxyConfig } from '../types/proxy';
+import { ProxyUtilityBar } from './ProxyUtilityBar';
 
 interface SimpleBypassBrowserProps {
   config: ProxyConfig;
@@ -15,6 +16,9 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>(['https://html.duckduckgo.com/html/?q=Raspberry+Pi+4B&kl=jp-jp']);
   const [historyIndex, setHistoryIndex] = useState(0);
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isReaderMode, setIsReaderMode] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -113,7 +117,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] min-h-[580px] max-w-7xl mx-auto w-full rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-140px)] min-h-[620px] max-w-7xl mx-auto w-full rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
       {/* Top Browser Bar */}
       <div className="bg-slate-950 px-3 sm:px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 sm:gap-3">
         {/* Navigation buttons */}
@@ -121,7 +125,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
           <button
             onClick={handleBack}
             disabled={historyIndex <= 0}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
             title="戻る"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -129,14 +133,14 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
           <button
             onClick={handleForward}
             disabled={historyIndex >= history.length - 1}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
             title="進む"
           >
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
             onClick={handleReload}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors cursor-pointer"
             title="再読み込み"
           >
             <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin text-rose-400' : ''}`} />
@@ -170,7 +174,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
             <button
               type="button"
               onClick={() => setQueryInput('')}
-              className="text-slate-400 hover:text-slate-200 p-0.5"
+              className="text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -178,7 +182,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
 
           <button
             type="submit"
-            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1 shadow transition-all flex-shrink-0"
+            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1 shadow transition-all flex-shrink-0 cursor-pointer"
           >
             <Search className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">検索</span>
@@ -199,7 +203,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
 
           <button
             onClick={onOpenSettings}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition-all"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition-all cursor-pointer"
           >
             <Sliders className="w-3.5 h-3.5 text-rose-400" />
             <span className="hidden md:inline">設定・npm</span>
@@ -207,7 +211,17 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
         </div>
       </div>
 
-      {/* Bookmarks & Anti-CAPTCHA Notice Bar */}
+      {/* Utility Toolbar (Reader Mode, Dark Mode, Translator, Wayback Machine) */}
+      <ProxyUtilityBar
+        currentUrl={currentUrl}
+        onNavigate={navigateTo}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        isReaderMode={isReaderMode}
+        setIsReaderMode={setIsReaderMode}
+      />
+
+      {/* Bookmarks Bar */}
       <div className="bg-slate-950/80 px-3 py-1.5 border-b border-slate-800/80 flex items-center gap-2 overflow-x-auto text-xs">
         <span className="text-[11px] text-slate-400 whitespace-nowrap pl-1">おすすめ:</span>
         {bookmarks.map((bm, i) => (
@@ -217,7 +231,7 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
               if (bm.url) navigateTo(bm.url);
               else if (bm.query) navigateTo(bm.query, bm.engine || searchEngine);
             }}
-            className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-[11px] whitespace-nowrap transition-all"
+            className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-[11px] whitespace-nowrap transition-all cursor-pointer"
           >
             <span>{bm.name}</span>
           </button>
@@ -225,12 +239,14 @@ export const SimpleBypassBrowser: React.FC<SimpleBypassBrowserProps> = ({ config
 
         <div className="ml-auto hidden sm:flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium pr-2">
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>CAPTCHA回避 DuckDuckGo / Yahoo! 連動中</span>
+          <span>Stealth Bypass Engine 稼働中</span>
         </div>
       </div>
 
-      {/* Viewport */}
-      <div className="flex-1 w-full bg-white relative">
+      {/* Viewport with CSS Filter modifiers for Dark Mode & Reader Mode */}
+      <div className={`flex-1 w-full bg-white relative transition-all ${
+        isDarkMode ? 'filter invert hue-rotate-180 contrast-95 bg-slate-950' : ''
+      }`}>
         <iframe
           ref={iframeRef}
           src={iframeSrc}

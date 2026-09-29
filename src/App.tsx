@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { SimpleBypassBrowser } from './components/SimpleBypassBrowser';
 import { WebCurlBypass } from './components/WebCurlBypass';
+import { StealthGuide } from './components/StealthGuide';
+import { PacProxyGuide } from './components/PacProxyGuide';
 import { ConfigGenerator } from './components/ConfigGenerator';
 import { AntiBotLab } from './components/AntiBotLab';
 import { StepByStepGuide } from './components/StepByStepGuide';
@@ -10,7 +12,7 @@ import { TroubleshootingFaq } from './components/TroubleshootingFaq';
 import { ProxyConfig, SslMode } from './types/proxy';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'browser' | 'curl_terminal' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting'>('browser');
+  const [activeTab, setActiveTab] = useState<'browser' | 'curl_terminal' | 'wifi_pac' | 'stealth' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting'>('browser');
 
   const [config, setConfig] = useState<ProxyConfig>({
     sslMode: 'cloudflare_tunnel',
@@ -40,7 +42,7 @@ export default function App() {
 
       {/* Main Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
-        {/* Mode 1: Clean Interactive Web Browser */}
+        {/* Mode 1: Clean Interactive Web Browser with Utilities */}
         {activeTab === 'browser' && (
           <SimpleBypassBrowser
             config={config}
@@ -51,6 +53,16 @@ export default function App() {
         {/* Mode 2: Web cURL Bypass Terminal */}
         {activeTab === 'curl_terminal' && (
           <WebCurlBypass />
+        )}
+
+        {/* Mode 3: Stealth Camouflage Architecture */}
+        {activeTab === 'stealth' && (
+          <StealthGuide config={config} />
+        )}
+
+        {/* Mode 4: Wi-Fi Proxy & PAC (Cisco Umbrella Bypass) */}
+        {activeTab === 'wifi_pac' && (
+          <PacProxyGuide config={config} />
         )}
 
         {/* Settings & Configuration Generator */}

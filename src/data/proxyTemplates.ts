@@ -12,6 +12,7 @@ import https from 'node:https';
 import zlib from 'node:zlib';
 import { URL } from 'node:url';
 import { execFile } from 'node:child_process';
+import net from 'node:net';
 
 const PORT = process.env.PORT || ${port};
 const AUTH_ENABLED = ${enableAuth};
@@ -223,6 +224,16 @@ const server = http.createServer((req, res) => {
   
   if (reqUrl.pathname === '/api/curl/exec' && req.method === 'POST') {
     handleCurlApi(req, res);
+  } else if (reqUrl.pathname === '/proxy.pac') {
+    // PAC File for automatic Wi-Fi proxy configuration
+    const hostHeader = req.headers.host || '127.0.0.1:' + PORT;
+    res.writeHead(200, { 'Content-Type': 'application/x-ns-proxy-autoconfig' });
+    res.end(\`function FindProxyForURL(url, host) {
+      if (shExpMatch(host, "localhost") || shExpMatch(host, "127.0.0.1") || shExpMatch(host, "192.168.*") || shExpMatch(host, "10.*")) {
+        return "DIRECT";
+      }
+      return "PROXY \${hostHeader}; DIRECT";
+    }\`);
   } else if (reqUrl.pathname === '/proxy-stream' || reqUrl.pathname === '/proxy') {
     const raw = reqUrl.searchParams.get('url') || reqUrl.searchParams.get('q');
     const engine = reqUrl.searchParams.get('engine') || 'ddg';
@@ -240,8 +251,25 @@ const server = http.createServer((req, res) => {
   }
 });
 
+// OS-Level Forward Proxy (HTTP CONNECT Tunnel for Wi-Fi Proxy settings)
+server.on('connect', (req, clientSocket, head) => {
+  if (!checkAuth(req, clientSocket)) return;
+  const [targetHost, targetPortStr] = req.url.split(':');
+  const targetPort = parseInt(targetPortStr) || 443;
+
+  const serverSocket = net.connect(targetPort, targetHost, () => {
+    clientSocket.write('HTTP/1.1 200 Connection Established\\r\\n\\r\n');
+    serverSocket.write(head);
+    serverSocket.pipe(clientSocket);
+    clientSocket.pipe(serverSocket);
+  });
+
+  serverSocket.on('error', () => { clientSocket.end(); });
+  clientSocket.on('error', () => { serverSocket.end(); });
+});
+
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('🍓 RasPi Web Proxy ready on port ' + PORT);
+  console.log('🍓 RasPi Web Proxy & Wi-Fi Forward Tunnel ready on port ' + PORT);
 });
 `;
 }
@@ -263,7 +291,42 @@ export function generatePackageJson(config: ProxyConfig): string {
 }
 
 export function generateSetupBashScript(config: ProxyConfig): string {
-  const { sslMode, port, autoStartService } = config;
+  const { sslMode, port, autoStartService, cloudflareToken, customDomain } = config;
+
+  let tunnelInstallSnippet = '';
+  let tunnelLaunchHelp = '';
+
+  if (sslMode === 'cloudflare_tunnel') {
+    tunnelInstallSnippet = `
+if ! command -v cloudflared &> /dev/null; then
+  echo "🚀 Cloudflare Tunnel (cloudflared ARM64) を導入中..."
+  curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb
+  sudo dpkg -i cloudflared.deb
+  rm cloudflared.deb
+fi`;
+    tunnelLaunchHelp = `echo "🔒 トンネル起動: cloudflared tunnel --url http://127.0.0.1:${port}"`;
+  } else if (sslMode === 'cf_custom_domain') {
+    tunnelInstallSnippet = `
+if ! command -v cloudflared &> /dev/null; then
+  echo "🚀 Cloudflare Tunnel (cloudflared ARM64) を導入中..."
+  curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb
+  sudo dpkg -i cloudflared.deb
+  rm cloudflared.deb
+fi`;
+    tunnelLaunchHelp = cloudflareToken 
+      ? `echo "🔒 独自ドメイン固定起動: sudo cloudflared service install ${cloudflareToken}"` 
+      : `echo "🔒 独自ドメイン起動: cloudflared tunnel run <TUNNEL_NAME>"`;
+  } else if (sslMode === 'tailscale_vpn') {
+    tunnelInstallSnippet = `
+echo "🛡️ Tailscale (WireGuard P2P VPN) を導入中..."
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up`;
+    tunnelLaunchHelp = `echo "🔒 Tailscale IP確認: tailscale ip -4 (例: http://100.x.y.z:${port})"`;
+  } else if (sslMode === 'pinggy_tunnel') {
+    tunnelInstallSnippet = `
+echo "⚡ Pinggy SSH トンネル準備完了 (追加ソフトインストール不要)"`;
+    tunnelLaunchHelp = `echo "🔒 即座に別ドメインHTTPS公開: ssh -p 443 -R0:localhost:${port} a.pinggy.io"`;
+  }
 
   return `#!/usr/bin/env bash
 # ==============================================================================
@@ -272,7 +335,7 @@ export function generateSetupBashScript(config: ProxyConfig): string {
 set -e
 
 sudo apt-get update -y
-sudo apt-get install -y curl wget git ufw
+sudo apt-get install -y curl wget git ufw openssh-client
 
 if ! command -v node &> /dev/null; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -291,13 +354,7 @@ cat << 'EOF' > server.mjs
 ${generateNodeServerCode(config)}
 EOF
 
-${sslMode === 'cloudflare_tunnel' ? `
-if ! command -v cloudflared &> /dev/null; then
-  curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb
-  sudo dpkg -i cloudflared.deb
-  rm cloudflared.deb
-fi
-` : ''}
+${tunnelInstallSnippet}
 
 sudo ufw allow ${port}/tcp || true
 
@@ -328,8 +385,8 @@ sudo systemctl restart raspi-proxy
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 echo "=============================================================================="
 echo "🎉 セットアップ完了！"
-echo "🌐 起動コマンド: node server.mjs"
-echo "🔒 トンネル起動: cloudflared tunnel --url http://127.0.0.1:${port}"
+echo "🌐 ローカル起動/待機中: http://$LOCAL_IP:${port}"
+${tunnelLaunchHelp}
 echo "=============================================================================="
 `;
 }

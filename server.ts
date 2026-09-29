@@ -6,6 +6,7 @@ import https from 'https';
 import http from 'http';
 import zlib from 'zlib';
 import { execFile } from 'child_process';
+import net from 'net';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -291,6 +292,17 @@ async function startServer() {
     proxyReq.end();
   }
 
+  app.get('/proxy.pac', (req, res) => {
+    const hostHeader = req.headers.host || `127.0.0.1:${PORT}`;
+    res.setHeader('Content-Type', 'application/x-ns-proxy-autoconfig');
+    res.send(`function FindProxyForURL(url, host) {
+      if (shExpMatch(host, "localhost") || shExpMatch(host, "127.0.0.1") || shExpMatch(host, "192.168.*") || shExpMatch(host, "10.*")) {
+        return "DIRECT";
+      }
+      return "PROXY ${hostHeader}; DIRECT";
+    }`);
+  });
+
   app.get('/proxy-stream', (req, res) => {
     const rawInput = (req.query.url as string) || (req.query.q as string);
     const engine = (req.query.engine as string) || 'ddg';
@@ -315,8 +327,26 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, () => {
-    console.log(`🚀 RasPi Web Proxy Server running on http://localhost:${PORT}`);
+  const httpServer = http.createServer(app);
+
+  // OS Forward Proxy: HTTP CONNECT Tunnel
+  httpServer.on('connect', (req, clientSocket, head) => {
+    const [targetHost, targetPortStr] = (req.url || '').split(':');
+    const targetPort = parseInt(targetPortStr) || 443;
+
+    const serverSocket = net.connect(targetPort, targetHost, () => {
+      clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+      serverSocket.write(head);
+      serverSocket.pipe(clientSocket);
+      clientSocket.pipe(serverSocket);
+    });
+
+    serverSocket.on('error', () => { clientSocket.end(); });
+    clientSocket.on('error', () => { serverSocket.end(); });
+  });
+
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 RasPi Web Proxy & Wi-Fi Forward Tunnel Server running on http://localhost:${PORT}`);
   });
 }
 

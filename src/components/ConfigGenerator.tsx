@@ -119,23 +119,46 @@ export const ConfigGenerator: React.FC<ConfigGeneratorProps> = ({ config, setCon
 
             {/* 2. SSL & Domain Option */}
             <div className="pt-2 border-t border-slate-800">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-sky-400" />
-                ② ドメイン・HTTPS方式
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-sky-400" />
+                  ② トンネル・HTTPS接続方式
+                </span>
+                <span className="text-[10px] text-amber-400 font-normal">
+                  ※trycloudflareブロック時はTailscale/Pinggy推奨
+                </span>
               </label>
               <div className="grid grid-cols-1 gap-2">
                 {[
                   {
+                    id: 'tailscale_vpn',
+                    name: '🛡️ Tailscale WireGuard (完全検閲回避・超推奨)',
+                    badge: '最強P2P暗号化 / 検閲ゼロ',
+                    desc: '学校や職場のファイアウォール・DNS制限を100%すり抜け。Raspberry Piとスマホを直結するゼロ設定メッシュVPN。'
+                  },
+                  {
+                    id: 'pinggy_tunnel',
+                    name: '⚡ Pinggy SSH トンネル (登録不要・別ドメイン)',
+                    badge: 'インストール不要',
+                    desc: '「ssh -p 443 -R0:localhost:8443 a.pinggy.io」を実行するだけで *.pinggy.link の安全なHTTPSが即発行。'
+                  },
+                  {
+                    id: 'cf_custom_domain',
+                    name: '🔒 Cloudflare Zero Trust (独自ドメイン)',
+                    badge: '固定ドメイン / 検閲回避',
+                    desc: '無料取得した独自ドメインやf5.si等をCloudflareに接続。trycloudflare.comのブラックリストを回避。'
+                  },
+                  {
                     id: 'cloudflare_tunnel',
-                    name: 'Cloudflare Tunnel (ドメイン不要・完全無料)',
-                    badge: 'ルーター開放不要',
-                    desc: '「npm run tunnel」で即座に世界中からアクセス可能な *.trycloudflare.com の正規HTTPSを発行。'
+                    name: '🌐 Cloudflare Quick Tunnel (*.trycloudflare.com)',
+                    badge: '完全無料 / コマンド1発',
+                    desc: '「npm run tunnel」で即座に公開。※学校等の環境によってはドメイン自体がブロックされる場合があります。'
                   },
                   {
                     id: 'mkcert_local',
-                    name: 'mkcert (ローカルLAN内専用)',
-                    badge: '警告ゼロ',
-                    desc: 'Raspberry Pi内部にローカルCAを作成。同一Wi-Fiから警告なしで安全に通信。'
+                    name: '🏠 mkcert (ローカルLAN内専用)',
+                    badge: 'LAN内専用 / 警告ゼロ',
+                    desc: 'Raspberry Pi内部にローカルCAを作成。同一Wi-Fi内から警告なしで通信。'
                   }
                 ].map((item) => (
                   <button
@@ -144,7 +167,7 @@ export const ConfigGenerator: React.FC<ConfigGeneratorProps> = ({ config, setCon
                     onClick={() => setConfig(prev => ({ ...prev, sslMode: item.id as SslMode }))}
                     className={`text-left p-3 rounded-xl border transition-all ${
                       config.sslMode === item.id
-                        ? 'bg-rose-500/10 border-rose-500/50 shadow-sm shadow-rose-500/10'
+                        ? 'bg-rose-500/10 border-rose-500/50 shadow-sm shadow-rose-500/10 ring-1 ring-rose-500/30'
                         : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
                     }`}
                   >

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Cpu, Globe, Terminal, Sliders, BookOpen, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Cpu, Globe, Terminal, Sliders, BookOpen, ShieldCheck, HelpCircle, Wifi, EyeOff, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'browser' | 'curl_terminal' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting';
-  setActiveTab: (tab: 'browser' | 'curl_terminal' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting') => void;
+  activeTab: 'browser' | 'curl_terminal' | 'wifi_pac' | 'stealth' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting';
+  setActiveTab: (tab: 'browser' | 'curl_terminal' | 'wifi_pac' | 'stealth' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
                 RasPi 4B Proxy Suite
               </span>
               <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Live
+                Stealth
               </span>
             </div>
           </div>
@@ -31,33 +31,59 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
             {/* Mode 1: Web Browser */}
             <button
               onClick={() => setActiveTab('browser')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'browser'
                   ? 'bg-rose-500 text-white shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-slate-900'
               }`}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>ブラウザ (通常閲覧)</span>
+              <span>ブラウザ (便利機能付)</span>
             </button>
 
             {/* Mode 2: Web cURL Bypass */}
             <button
               onClick={() => setActiveTab('curl_terminal')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'curl_terminal'
                   ? 'bg-amber-500 text-slate-950 shadow-md font-bold'
                   : 'text-amber-400/90 hover:text-amber-300 hover:bg-slate-900'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
-              <span>Web cURL (検閲回避)</span>
+              <span>Web cURL</span>
+            </button>
+
+            {/* Mode 3: Stealth Camouflage Guide */}
+            <button
+              onClick={() => setActiveTab('stealth')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'stealth'
+                  ? 'bg-emerald-600 text-white shadow-md font-bold'
+                  : 'text-emerald-400 hover:text-emerald-200 hover:bg-slate-900'
+              }`}
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+              <span>🕵️ ステルス偽装</span>
+            </button>
+
+            {/* Mode 4: Wi-Fi Proxy / Cisco Umbrella Bypass */}
+            <button
+              onClick={() => setActiveTab('wifi_pac')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'wifi_pac'
+                  ? 'bg-indigo-600 text-white shadow-md font-bold'
+                  : 'text-indigo-400 hover:text-indigo-200 hover:bg-slate-900'
+              }`}
+            >
+              <Wifi className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Wi-Fi設定 (Umbrella)</span>
             </button>
 
             {/* Settings */}
             <button
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'settings'
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
@@ -70,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
             {/* FAQ */}
             <button
               onClick={() => setActiveTab('troubleshooting')}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'troubleshooting'
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
