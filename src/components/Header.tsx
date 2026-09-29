@@ -1,9 +1,9 @@
 import React from 'react';
-import { Cpu, Globe, Sliders, BookOpen, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Cpu, Globe, Terminal, Sliders, BookOpen, ShieldCheck, HelpCircle } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'browser' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting';
-  setActiveTab: (tab: 'browser' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting') => void;
+  activeTab: 'browser' | 'curl_terminal' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting';
+  setActiveTab: (tab: 'browser' | 'curl_terminal' | 'settings' | 'bot_lab' | 'guide' | 'comparison' | 'troubleshooting') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
@@ -18,16 +18,17 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
             </div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-rose-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
-                RasPi 4B Web Browser
+                RasPi 4B Proxy Suite
               </span>
               <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                バイパス稼働中
+                Live
               </span>
             </div>
           </div>
 
           {/* Clean Navigation */}
           <nav className="flex items-center gap-1 sm:gap-2">
+            {/* Mode 1: Web Browser */}
             <button
               onClick={() => setActiveTab('browser')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -37,48 +38,39 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               }`}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>ブラウザ (検索・閲覧)</span>
+              <span>ブラウザ (通常閲覧)</span>
             </button>
 
+            {/* Mode 2: Web cURL Bypass */}
+            <button
+              onClick={() => setActiveTab('curl_terminal')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === 'curl_terminal'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-bold'
+                  : 'text-amber-400/90 hover:text-amber-300 hover:bg-slate-900'
+              }`}
+            >
+              <Terminal className="w-3.5 h-3.5" />
+              <span>Web cURL (検閲回避)</span>
+            </button>
+
+            {/* Settings */}
             <button
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'settings'
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
               }`}
             >
               <Sliders className="w-3.5 h-3.5" />
-              <span>設定・npm</span>
+              <span className="hidden md:inline">設定・npm</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('bot_lab')}
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'bot_lab'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Bot回避の仕組み</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('guide')}
-              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'guide'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>構築手順</span>
-            </button>
-
+            {/* FAQ */}
             <button
               onClick={() => setActiveTab('troubleshooting')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'troubleshooting'
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'

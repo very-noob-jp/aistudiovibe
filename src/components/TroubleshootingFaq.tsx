@@ -1,38 +1,91 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, AlertCircle, ShieldAlert, Wifi, Terminal, RefreshCw, Key } from 'lucide-react';
+import { HelpCircle, ChevronDown, ChevronUp, AlertCircle, ShieldAlert, Wifi, Terminal, RefreshCw, Key, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
 
 export const TroubleshootingFaq: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const faqs = [
     {
-      q: 'Q1. 自宅のインターネットが「DS-Lite / MAP-E (V6プラス/IPv6 IPoE)」でポート開放できません。どうすればいいですか？',
+      q: 'Q1. 【502 Bad Gateway】「dial tcp [::1]:8443: connect: connection refused」と出る原因と直し方は？',
+      a: `このエラーには原因が2つあります：
+
+【原因①: Node.js サーバー（npm start）が別画面で起動していない】
+Cloudflare Tunnel (cloudflared) は「自宅のRaspberry Piで動いているWebサーバーに転送する」ツールです。
+転送先である \`node server.mjs\`（または \`npm start\`）が起動していないと、接続を拒否（connection refused）され502エラーになります。
+👉 【解決策】: ターミナルを2つ開くか、バックグラウンド起動してください：
+   ・ターミナル1: \`npm start\` （または \`node server.mjs\`）
+   ・ターミナル2: \`npm run tunnel\` （または \`cloudflared tunnel --url http://127.0.0.1:8443\`）
+
+【原因②: IPv6 [::1] と IPv4 の競合】
+cloudflared が \`localhost\` をIPv6の \`[::1]\` として解決してしまい、IPv4で待機しているNode.jsと通信できない場合があります。
+👉 【解決策】: \`localhost\` ではなく \`127.0.0.1\` を指定してトンネルを起動します：
+   \`cloudflared tunnel --url http://127.0.0.1:8443\``
+    },
+    {
+      q: 'Q2. 自宅のインターネットが「DS-Lite / MAP-E (V6プラス/IPv6 IPoE)」でポート開放できません。どうすればいいですか？',
       a: '日本の光回線（transix、v6プラス、OCNバーチャルコネクトなど）では、グローバルIPv4アドレスが共有されているため、ルーターで80番や443番ポートを開放できません。この場合は【Cloudflare Tunnel (cloudflared)】を使用するのが最適解です。Cloudflare TunnelはRaspberry Piから外向きに常時接続を確立するため、ポート開放やCGNAT制限を完全無視して無料HTTPSで外部アクセスできます。'
     },
     {
-      q: 'Q2. 「保護されていない通信」「プライバシーが保護されていません」と出る理由と対策は？',
+      q: 'Q3. 「保護されていない通信」「プライバシーが保護されていません」と出る理由と対策は？',
       a: '自己署名証明書（Self-Signed）やIPアドレス直打ちの場合にブラウザのセキュリティ機能が警告を出します。解決策は以下のいずれかです：\n1. Cloudflare Tunnelを使用する（正規のCloudflare SSLが自動適用され、警告なしになります）。\n2. ローカルLAN内なら「mkcert」を使ってRaspberry Pi内でローカル認証局を作り、証明書を発行する。'
     },
     {
-      q: 'Q3. Webプロキシで一部のWebサイトの画像やCSSが崩れたり、リンクをクリックすると元のサイトに飛んでしまうのはなぜ？',
+      q: 'Q4. Webプロキシで一部のWebサイトの画像やCSSが崩れたり、リンクをクリックすると元のサイトに飛んでしまうのはなぜ？',
       a: 'Webサイト内のリンクが絶対パス（例: href="/css/style.css"）で書かれていると、クライアントのブラウザがプロキシではなく自身のURLへリクエストを送ってしまうためです。当ツールの「server.mjs」では、レスポンスのHTMLの<head>内に「<base href="元のサイトURL">」を自動注入することで、画像やスタイルシートが壊れないよう補正しています。'
     },
     {
-      q: 'Q4. サイトを開いた人の通信が本当にRaspberry Piを経由（バイパス）しているか確認するには？',
+      q: 'Q5. サイトを開いた人の通信が本当にRaspberry Piを経由（バイパス）しているか確認するには？',
       a: 'プロキシ経由で「https://httpbin.org/ip」または「https://ipinfo.io/json」を開いてください。\nスマホの4G/5G回線からアクセスしているにもかかわらず、画面に表示されるIPアドレスが「Raspberry Piが接続されている自宅Wi-Fi/光回線のIPアドレス」になっていれば、すべての通信がRasPi 4Bを経由して中継されています。'
     },
     {
-      q: 'Q5. パスワードを設定して、自分以外の人に使われないようにしたい',
+      q: 'Q6. パスワードを設定して、自分以外の人に使われないようにしたい',
       a: '設定画面の「Basic 認証パスワード保護」をONにしてください。生成される server.mjs にBasic認証機能が組み込まれ、ブラウザで開いた際にユーザー名とパスワードの入力を要求されるようになります。'
     },
     {
-      q: 'Q6. Raspberry Pi 4Bのスペックで何人くらい同時アクセスできますか？',
+      q: 'Q7. Raspberry Pi 4Bのスペックで何人くらい同時アクセスできますか？',
       a: 'Raspberry Pi 4B（4GB/8GB RAM）はギガビットイーサネットを搭載しており、Node.jsの非同期I/O処理により、個人利用〜数十人規模の同時Webプロキシ通信であればCPU負荷数%〜10%程度で非常に軽快に動作します。'
     }
   ];
 
   return (
     <div className="space-y-6">
+      {/* 502 Alert Solution Banner */}
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900 to-slate-900 border border-rose-500/40 shadow-xl space-y-3">
+        <div className="flex items-center gap-2 text-rose-400 font-bold text-sm sm:text-base">
+          <AlertTriangle className="w-5 h-5 text-rose-400 animate-pulse" />
+          <span>502エラー (dial tcp [::1]:8443: connect: connection refused) の解決手順</span>
+        </div>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Cloudflare Tunnel は正常に接続（kix03にトンネル登録完了）されていますが、<strong>Raspberry Pi側のプロキシ本体（Node.js）が起動していない</strong>、または <strong>IPv6 [::1] への転送拒否</strong> が発生しています。以下の2ステップで即座に直ります：
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono pt-1">
+          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <span className="text-emerald-400 font-bold block font-sans">
+              ステップ1: Nodeサーバーを起動する
+            </span>
+            <p className="text-[11px] text-slate-400 font-sans">
+              まずプロキシ本体を起動（ポート8443で待機）させておきます：
+            </p>
+            <code className="text-[11px] text-emerald-300 block bg-slate-900 p-2 rounded border border-slate-800">
+              node server.mjs
+            </code>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <span className="text-sky-400 font-bold block font-sans">
+              ステップ2: 127.0.0.1 を指定してトンネル起動
+            </span>
+            <p className="text-[11px] text-slate-400 font-sans">
+              別のターミナルで localhost ではなく 127.0.0.1 を指定して実行：
+            </p>
+            <code className="text-[11px] text-sky-300 block bg-slate-900 p-2 rounded border border-slate-800">
+              cloudflared tunnel --url http://127.0.0.1:8443
+            </code>
+          </div>
+        </div>
+      </div>
+
       <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
           <HelpCircle className="w-5 h-5 text-rose-400" />
